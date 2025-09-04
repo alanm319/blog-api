@@ -29,6 +29,7 @@ model Post {
   title       String
   slug        String    @unique
   content     String
+  imageUrl    String?    
   state       PostState @default(PUBLISHED)
   comments    Comment[]
   publishedAt DateTime? @default(now())

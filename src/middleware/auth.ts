@@ -9,14 +9,14 @@ interface JwtPayload {
 }
 
 export function authenticate(req: Request, res: Response, next: NextFunction) {
-  const authHeader = req.headers.authorization;
+  const authHeader = req.headers['authorization'] as string | undefined;
   if (!authHeader) {
-    return res.status(401).json({ error: "No token provided" });
+    return res.status(401).json({ message: "No token provided" });
   }
 
   const token = authHeader.split(' ')[1];
   if (!token) {
-    return res.status(401).json({ error: "No token provided" });
+    return res.status(401).json({ message: "No token provided" });
   }
 
   try {
@@ -25,17 +25,17 @@ export function authenticate(req: Request, res: Response, next: NextFunction) {
     next();
     return;
   } catch (error) {
-    return res.status(403).json({ error: "Invalid token" });
+    return res.status(403).json({ message: "Invalid token" });
   }
 }
 
 export function authorizeAdmin(req: Request, res: Response, next: NextFunction) {
   if (!req.user) {
-    return res.status(401).json({ error: "Not authinticated" });
+    return res.status(401).json({ message: "Not authenticated" });
   }
 
-  if (req.user && req.user.role !== 'ADMIN') {
-    return res.status(403).json({ error: "Forbidden: Admin Only" });
+  if (req.user.role !== 'ADMIN') {
+    return res.status(403).json({ message: "Forbidden: Admin Only" });
   }
   next();
   return;
