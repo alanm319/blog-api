@@ -1,5 +1,6 @@
-import { type Request, type Response, type NextFunction } from "express";
+import type { Request, Response, NextFunction } from "express";
 import jwt from "jsonwebtoken";
+import CustomError from "../util/CustomError.js";
 
 interface JwtPayload {
   id: number,
@@ -8,34 +9,28 @@ interface JwtPayload {
   exp: number,
 }
 
-export function authenticate(req: Request, res: Response, next: NextFunction) {
+export function authenticate(req: Request, _res: Response, next: NextFunction) {
   const authHeader = req.headers['authorization'] as string | undefined;
   if (!authHeader) {
-    return res.status(401).json({ message: "No token provided" });
+    throw new CustomError("Auth header required", 401);
   }
 
   const token = authHeader.split(' ')[1];
   if (!token) {
-    return res.status(401).json({ message: "No token provided" });
+    throw new CustomError("No token provided", 401);
   }
-
-  try {
     const payload = jwt.verify(token, process.env.SECRETKEY as string) as JwtPayload;
     req.user = { id: payload.id, role: payload.role };
     next();
-    return;
-  } catch (error) {
-    return res.status(403).json({ message: "Invalid token" });
-  }
 }
 
-export function authorizeAdmin(req: Request, res: Response, next: NextFunction) {
+export function authorizeAdmin(req: Request, _res: Response, next: NextFunction) {
   if (!req.user) {
-    return res.status(401).json({ message: "Not authenticated" });
+    throw new CustomError("Not authinticated", 401);
   }
 
   if (req.user.role !== 'ADMIN') {
-    return res.status(403).json({ message: "Forbidden: Admin Only" });
+    throw new CustomError("Not authorized", 403);
   }
   next();
   return;
